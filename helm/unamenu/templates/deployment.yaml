@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unamenu
+  labels:
+    {{- include "unamenu.labels" . | nindent 4 }}
+  annotations:
+    keel.sh/policy: force
+    keel.sh/trigger: poll # <-- actively query registry, otherwise defaults to webhooks
+    keel.sh/pollSchedule: "@every 10m"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "unamenu.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "unamenu.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "unamenu.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: UNAMENU_GOOGLE_CLOUD_SERVICE_ACCOUNT_ENCODED_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: unamenu-env-secret
+                  key: google-cloud-service-account-encoded-key
+                  optional: false
+            - name: UNAMENU_FIREBASE_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: unamenu-env-secret
+                  key: firebase-database
+                  optional: false
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            # - name: management
+            #   containerPort: 8081              
+            #   protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 60  
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

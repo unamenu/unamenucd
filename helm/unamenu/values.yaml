@@ -1,0 +1,79 @@
+# Default values for unamenu.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/unamenu/unamenu
+  tag: 1.0.1-SNAPSHOT
+  # digest: sha256:1f47a20d1961edf1c0c35c31deeeb80f26104a0dc24d0a0ad956d97406a9ff03
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: githubregistry
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: unamenu
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+  # annotations:
+  #   external-dns.alpha.kubernetes.io/hostname: app.unamenu.com
+
+ingress:
+  enabled: true
+  namespace: unamenu
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: letsencrypt
+    acme.cert-manager.io/http01-edit-in-place: "true"
+ 
+  hosts:
+    - host: dev.unamenu.com
+      paths:
+        - backend:
+            fullName: unamenu
+            svcPort: 8080
+          path: /
+
+  tls:
+    - secretName: dev-unamenu-tls
+      hosts:
+        secretName: dev.unamenu.com
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 32Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
