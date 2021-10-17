@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/unamenu/unamenu
-  tag: 1.0.4
+  tag: 1.0.5
   #digest: sha256:c86e147ba432255a5f2ad9060397dade848db1e3e6ca67304a72df28efc8c2be
   pullPolicy: Always
 
