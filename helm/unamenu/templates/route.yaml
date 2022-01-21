@@ -1,0 +1,23 @@
+{{- if .Values.route.enabled -}}
+{{- $routeName := .Values.route.name -}}
+{{- $svcPort := .Values.service.port -}}
+{{- $host := .Values.route.host -}}
+{{- $serviceName := .Values.route.service -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $routeName }}
+  labels:
+    {{- include "unamenu.labels" . | nindent 4 }}
+  {{- with .Values.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ $host }}
+  to:
+    kind: Service
+    name: {{ $serviceName }}
+status:
+  ingress: []
+{{- end }}

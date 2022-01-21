@@ -39,8 +39,6 @@ securityContext:
 service:
   type: ClusterIP
   port: 8080
-  # annotations:
-  #   external-dns.alpha.kubernetes.io/hostname: app.unamenu.com
 
 ingress:
   enabled: true
@@ -52,7 +50,7 @@ ingress:
     acme.cert-manager.io/http01-edit-in-place: "true"
  
   hosts:
-    - host: dev.unamenu.com
+    - host: dev2.unamenu.com
       paths:
         - backend:
             fullName: unamenu
@@ -60,9 +58,18 @@ ingress:
           path: /
 
   tls:
-    - secretName: dev-unamenu-tls
+    - secretName: dev2-unamenu-tls
       hosts:
-        secretName: dev.unamenu.com
+        secretName: dev2.unamenu.com
+
+route:
+  enabled: false
+  name: unamenu
+  namespace: unamenu
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  host: "dev2.unamenu.com"
+  service: unamenu
 
 resources:
   limits:
